@@ -1,24 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Host from './Host';
+import Join from './Join';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      {/* You can remove this nav later, it's just for testing */}
+      <nav className="bg-gray-800 text-white p-4">
+        <Link to="/host" className="mr-4">Host</Link>
+        <Link to="/join">Join</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/host" element={<Host />} />
+        <Route path="/join" element={<Join />} />
+      </Routes>
+    </Router>
   );
 }
 

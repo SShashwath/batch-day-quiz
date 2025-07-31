@@ -1,4 +1,3 @@
-// src/Join.js
 import React, { useState, useEffect } from 'react';
 import { ref, onValue, push, set, serverTimestamp } from 'firebase/database';
 import { database } from './firebase';
@@ -8,24 +7,23 @@ function Join() {
   const [hasJoined, setHasJoined] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  // This effect hook listens for new questions from the database
   useEffect(() => {
-    // Reference to the 'questions' node in your database
     const questionsRef = ref(database, 'questions');
-
-    // onValue() sets up a listener that runs whenever the data changes.
     onValue(questionsRef, (snapshot) => {
       const questions = snapshot.val();
       if (questions) {
-        // Get the most recent question
         const latestQuestionId = Object.keys(questions).pop();
         const latestQuestion = questions[latestQuestionId];
         setCurrentQuestion({ id: latestQuestionId, ...latestQuestion });
-        setSelectedOption(null); // Reset selection for new question
+        setSelectedOption(null);
+        setSubmitted(false);
+      } else {
+        setCurrentQuestion(null);
       }
     });
-  }, []); // The empty array ensures this effect runs only once
+  }, []);
 
   const handleJoin = (e) => {
     e.preventDefault();
@@ -35,75 +33,77 @@ function Join() {
   };
 
   const handleAnswerSubmit = (option) => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || submitted) return;
     setSelectedOption(option);
+    setSubmitted(true);
 
-    // Reference to the 'answers' node for the current question
     const answersRef = ref(database, `answers/${currentQuestion.id}`);
     const newAnswerRef = push(answersRef);
-    
-    // Set the student's answer with their name and a server timestamp
+
     set(newAnswerRef, {
       studentName: name,
       answer: option,
-      timestamp: serverTimestamp(), // Use server's time for accuracy
+      timestamp: serverTimestamp(),
     });
   };
 
-  // If the student hasn't entered their name yet, show the name form
   if (!hasJoined) {
     return (
-      <div className="container mx-auto p-8 text-center">
-        <h1 className="text-3xl font-bold mb-6">Join Quiz</h1>
-        <form onSubmit={handleJoin} className="max-w-sm mx-auto">
+      <div className="w-full max-w-md mx-auto">
+        <h1 className="text-4xl font-black mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">JOIN QUIZ</h1>
+        <form onSubmit={handleJoin} className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-700">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="Enter your name"
+            className="bg-gray-900/50 border border-gray-700 rounded w-full py-3 px-4 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+            placeholder="Enter your name to join..."
           />
           <button
             type="submit"
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full mt-4 focus:outline-none focus:shadow-outline"
+            className="w-full mt-4 bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300"
           >
-            Join
+            Let's Go!
           </button>
         </form>
       </div>
     );
   }
 
-  // After joining, show the quiz interface
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4 text-center">Welcome, {name}!</h1>
-      {currentQuestion ? (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl mb-4">{currentQuestion.text}</h2>
-          <div className="space-y-2">
-            {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswerSubmit(option)}
-                disabled={selectedOption !== null} // Disable after answering
-                className={`block w-full text-left p-4 rounded ${
-                  selectedOption === option
-                    ? 'bg-blue-500 text-white' // Highlight selected answer
-                    : 'bg-gray-200 hover:bg-gray-300'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {option}
-              </button>
-            ))}
+    <div className="w-full max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-center text-gray-400">Welcome, {name}!</h1>
+      <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-700 min-h-[300px] flex flex-col justify-center">
+        {currentQuestion ? (
+          <div>
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-100">{currentQuestion.text}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = selectedOption === option;
+                const buttonClass = isSelected
+                  ? 'bg-gradient-to-r from-green-400 to-blue-500 text-white scale-105'
+                  : 'bg-gray-900/50 hover:bg-purple-500/50 border border-gray-700';
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswerSubmit(option)}
+                    disabled={submitted}
+                    className={`w-full text-left p-4 rounded-lg font-bold text-lg transition-all duration-300 transform disabled:opacity-60 disabled:cursor-not-allowed ${buttonClass}`}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+            {submitted && (
+              <p className="mt-6 text-center text-green-400 font-bold text-xl animate-pulse">Answer Locked In!</p>
+            )}
           </div>
-          {selectedOption && (
-            <p className="mt-4 text-green-600 font-bold">Your answer has been submitted!</p>
-          )}
-        </div>
-      ) : (
-        <p className="text-center text-gray-500">Waiting for the host to ask a question...</p>
-      )}
+        ) : (
+          <p className="text-center text-gray-500 text-xl">Waiting for the next question...</p>
+        )}
+      </div>
     </div>
   );
 }

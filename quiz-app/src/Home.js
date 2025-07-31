@@ -13,13 +13,13 @@ function Home() {
       <div className="space-y-6">
         <Link
           to="/host"
-          className="block w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg text-2xl transform hover:scale-105 transition-all duration-300"
+          className="block w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg text-2xl transform hover:scale-105 transition-all duration-300 shadow-purple-500/50 hover:shadow-purple-400/80"
         >
           Host a Quiz
         </Link>
         <Link
           to="/join"
-          className="block w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg text-2xl transform hover:scale-105 transition-all duration-300"
+          className="block w-full bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg text-2xl transform hover:scale-105 transition-all duration-300 shadow-blue-500/50 hover:shadow-blue-400/80"
         >
           Join a Quiz
         </Link>

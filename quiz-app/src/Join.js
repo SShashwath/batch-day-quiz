@@ -8,6 +8,9 @@ function Join() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [countdown, setCountdown] = useState(15);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
     const questionsRef = ref(database, 'questions');
@@ -19,15 +22,45 @@ function Join() {
         setCurrentQuestion({ id: latestQuestionId, ...latestQuestion });
         setSelectedOption(null);
         setSubmitted(false);
+        setCountdown(15); // Reset countdown for new question
       } else {
         setCurrentQuestion(null);
       }
     });
+
+    const playersRef = ref(database, 'players');
+    onValue(playersRef, (snapshot) => {
+      const playersData = snapshot.val();
+      setPlayers(playersData ? Object.values(playersData) : []);
+    });
   }, []);
+
+  useEffect(() => {
+    if (currentQuestion && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentQuestion, countdown]);
+
+  useEffect(() => {
+    const answersRef = ref(database, `answers/${currentQuestion?.id}`);
+    onValue(answersRef, (snapshot) => {
+      const answersData = snapshot.val();
+      if (answersData) {
+        const answersList = Object.values(answersData);
+        const correctAnswers = answersList.filter(a => a.answer === currentQuestion.correctAnswer);
+        correctAnswers.sort((a, b) => a.timestamp - b.timestamp);
+        setLeaderboard(correctAnswers.slice(0, 5));
+      }
+    });
+  }, [currentQuestion]);
 
   const handleJoin = (e) => {
     e.preventDefault();
     if (name.trim()) {
+      const playersRef = ref(database, 'players');
+      const newPlayerRef = push(playersRef);
+      set(newPlayerRef, { name });
       setHasJoined(true);
     }
   };
@@ -76,19 +109,28 @@ function Join() {
       <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-700 min-h-[300px] flex flex-col justify-center">
         {currentQuestion ? (
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-center text-gray-100">{currentQuestion.text}</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-center text-gray-100">{currentQuestion.text}</h2>
+              <div className="text-2xl font-bold text-yellow-400">{countdown}s</div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {currentQuestion.options.map((option, index) => {
                 const isSelected = selectedOption === option;
-                const buttonClass = isSelected
-                  ? 'bg-gradient-to-r from-green-400 to-blue-500 text-white scale-105'
-                  : 'bg-gray-900/50 hover:bg-purple-500/50 border border-gray-700';
+                const isCorrect = currentQuestion.correctAnswer === option;
+                let buttonClass = 'bg-gray-900/50 hover:bg-purple-500/50 border border-gray-700';
+                if (submitted) {
+                  if (isCorrect) {
+                    buttonClass = 'bg-green-500 text-white';
+                  } else if (isSelected) {
+                    buttonClass = 'bg-red-500 text-white';
+                  }
+                }
 
                 return (
                   <button
                     key={index}
                     onClick={() => handleAnswerSubmit(option)}
-                    disabled={submitted}
+                    disabled={submitted || countdown === 0}
                     className={`w-full text-left p-4 rounded-lg font-bold text-lg transition-all duration-300 transform disabled:opacity-60 disabled:cursor-not-allowed ${buttonClass}`}
                   >
                     {option}
@@ -101,7 +143,30 @@ function Join() {
             )}
           </div>
         ) : (
-          <p className="text-center text-gray-500 text-xl">Waiting for the next question...</p>
+          <div className="text-center">
+            <p className="text-gray-500 text-xl mb-4">Waiting for the next question...</p>
+            <h3 className="text-lg font-bold text-gray-400">Players in Lobby:</h3>
+            <ul className="mt-2">
+              {players.map((player, index) => (
+                <li key={index} className="text-gray-300">{player.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-700 mt-8">
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-300">Leaderboard</h2>
+        {leaderboard.length > 0 ? (
+          <ul className="space-y-2">
+            {leaderboard.map((entry, index) => (
+              <li key={index} className="bg-gray-900/50 p-3 rounded-lg flex justify-between items-center">
+                <span className="text-gray-300">{index + 1}. {entry.studentName}</span>
+                <span className="text-gray-500 text-sm">{(entry.timestamp - new Date(currentQuestion.createdAt).getTime()) / 1000}s</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 text-center">No correct answers yet.</p>
         )}
       </div>
     </div>

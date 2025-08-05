@@ -16,7 +16,7 @@ function HostLogin({ onLogin }) {
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <h1 className="text-4xl font-black mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Host Access</h1>
+      <h1 className="text-4xl font-black mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Bitchass did u think i wouldn't password protect this</h1>
       <form onSubmit={handleSubmit} className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-700">
         <label className="block text-gray-300 text-sm font-bold mb-2" htmlFor="passcode">
           Enter Passcode

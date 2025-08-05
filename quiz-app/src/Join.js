@@ -8,7 +8,7 @@ function Join() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-  const [countdown, setCountdown] = useState(15);
+  const [countdown, setCountdown] = useState(10);
   const [leaderboard, setLeaderboard] = useState([]);
   const [players, setPlayers] = useState([]);
 
@@ -22,7 +22,7 @@ function Join() {
         setCurrentQuestion({ id: latestQuestionId, ...latestQuestion });
         setSelectedOption(null);
         setSubmitted(false);
-        setCountdown(15); // Reset countdown for new question
+        setCountdown(10); // Reset countdown for new question
       } else {
         setCurrentQuestion(null);
       }

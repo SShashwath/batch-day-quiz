@@ -9,7 +9,7 @@ function App() {
     <Router>
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <Routes>
-          <Route path="/host" element={<Host />} />
+          <Route path="/host/*" element={<Host />} />
           <Route path="/join" element={<Join />} />
           <Route path="/" element={<Home />} /> {/* Set Home as the default route */}
         </Routes>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ref, onValue, push, set, query, orderByChild, limitToLast } from 'firebase/database';
 import { database } from './firebase';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import CreateQuestion from './CreateQuestion';
 import Results from './Results';
+import HostLogin from './HostLogin';
 
 function Host() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '', '', '']);
   const [correctOptionIndex, setCorrectOptionIndex] = useState(null);
@@ -17,8 +19,17 @@ function Host() {
   const [questionQueue, setQuestionQueue] = useState([]);
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (isAuthenticated && location.pathname === '/host') {
+      navigate('/host/create');
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const questionsRef = ref(database, 'questions');
     const lastQuestionQuery = query(questionsRef, orderByChild('createdAt'), limitToLast(1));
 
@@ -32,10 +43,10 @@ function Host() {
         setLatestQuestion(null);
       }
     });
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!latestQuestion) {
+    if (!latestQuestion || !isAuthenticated) {
       setWinner(null);
       setAnswerCounts({});
       setTotalAnswers(0);
@@ -67,7 +78,7 @@ function Host() {
       });
       setAnswerCounts(counts);
     });
-  }, [latestQuestion]);
+  }, [latestQuestion, isAuthenticated]);
 
   const handleAddToQueue = (e) => {
     e.preventDefault();
@@ -97,6 +108,15 @@ function Host() {
 
     setQuestionQueue(questionQueue.filter(q => q !== questionToBroadcast));
   };
+  
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    navigate('/host/create');
+  };
+
+  if (!isAuthenticated) {
+    return <HostLogin onLogin={handleLogin} />;
+  }
 
   return (
     <div className="container mx-auto p-4 w-full max-w-6xl">

@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Host from './Host';
 import Join from './Join';
-import Home from './Home'; // Import the new Home component
+import Home from './Home';
+import Leaderboard from './Leaderboard';
 
 function App() {
   return (
@@ -11,7 +12,8 @@ function App() {
         <Routes>
           <Route path="/host/*" element={<Host />} />
           <Route path="/join" element={<Join />} />
-          <Route path="/" element={<Home />} /> {/* Set Home as the default route */}
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/" element={<Home />} />
         </Routes>
       </div>
     </Router>
